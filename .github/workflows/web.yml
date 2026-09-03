@@ -27,9 +27,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: "npm"
-      - run: npm ci
-      - run: npm run lint
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - run: yarn run lint
 
   build:
     needs: [eslint]
@@ -45,9 +45,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: "npm"
-      - run: npm ci
-      - run: npm run build
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - run: yarn run build
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
