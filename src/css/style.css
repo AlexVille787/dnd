@@ -491,3 +491,82 @@ body {
 .card-composer {
   animation: composerSlideDown 0.2s ease;
 }
+/* ===== Кнопка удаления карточки ===== */
+
+.card-delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  background: rgba(235, 90, 70, 0.9);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Segoe UI", "Arial Unicode MS", sans-serif;
+  line-height: 1;
+  padding: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.card-delete-btn::before {
+  content: "X";
+  font-family: "Segoe UI", "Arial Unicode MS", sans-serif;
+  font-size: 18px;
+}
+
+.card-delete-btn:hover {
+  background: #eb5a46;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(235, 90, 70, 0.4);
+}
+
+.card-delete-btn:active {
+  transform: scale(0.9);
+}
+
+/* Показываем кнопку при наведении на карточку */
+.card:hover .card-delete-btn {
+  opacity: 1;
+}
+
+/* Стили для удаления с анимацией */
+.card.removing {
+  animation: cardRemove 0.3s ease forwards;
+}
+
+@keyframes cardRemove {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateX(-20px);
+  }
+}
+
+/* Адаптив для мобильных устройств */
+@media (max-width: 768px) {
+  .card-delete-btn {
+    opacity: 0.7;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+
+  .card-delete-btn::before {
+    font-size: 20px;
+  }
+}

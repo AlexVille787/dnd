@@ -30,8 +30,34 @@ export default class Column {
       if (textEl) {
         const card = new Card(textEl.textContent, this);
         card.element = cardEl;
+
+        // Создаем кнопку удаления для существующей карточки
+        this.addDeleteButtonToExistingCard(cardEl, card);
+
         this.cards.push(card);
       }
+    });
+  }
+
+  // Добавляет кнопку удаления к существующей карточке
+  addDeleteButtonToExistingCard(cardElement, card) {
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "card-delete-btn";
+    deleteBtn.setAttribute("aria-label", "Удалить карточку");
+    deleteBtn.title = "Удалить карточку";
+
+    deleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      card.remove();
+    });
+
+    cardElement.appendChild(deleteBtn);
+    card.deleteBtn = deleteBtn;
+
+    // Переопределяем обработчик клика
+    cardElement.addEventListener("click", (e) => {
+      if (e.target.closest(".card-delete-btn")) return;
+      card.onClick();
     });
   }
 
@@ -47,6 +73,14 @@ export default class Column {
     cardElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
     return card;
+  }
+
+  // Удаление карточки из массива
+  removeCard(card) {
+    const index = this.cards.indexOf(card);
+    if (index !== -1) {
+      this.cards.splice(index, 1);
+    }
   }
 
   // Обновление счетчика карточек
