@@ -570,3 +570,107 @@ body {
     font-size: 20px;
   }
 }
+
+/* ===== Drag and Drop стили ===== */
+
+.dragging-active {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grabbing !important;
+}
+
+.drag-clone {
+  transition: none !important;
+  cursor: grabbing !important;
+  will-change: transform, left, top;
+}
+
+.drag-clone .card-delete-btn {
+  display: none !important;
+}
+
+.drag-placeholder {
+  animation: placeholderPulse 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+  min-height: 60px;
+}
+
+@keyframes placeholderPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+    background-color: rgba(2, 106, 167, 0.08);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+    background-color: rgba(2, 106, 167, 0.15);
+  }
+}
+
+.drag-ghost {
+  flex-shrink: 0;
+  min-height: 60px;
+  animation: ghostFade 1.5s ease-in-out infinite;
+}
+
+@keyframes ghostFade {
+  0%,
+  100% {
+    opacity: 0.4;
+    background-color: #e8f0fe;
+  }
+  50% {
+    opacity: 0.7;
+    background-color: #d2e5ff;
+  }
+}
+
+/* Стили для карточки во время перетаскивания */
+.card.dragging {
+  opacity: 0.3;
+  transform: scale(0.95);
+}
+
+/* Плавное появление карточки при вставке */
+.card-inserted {
+  animation: cardInsert 0.3s ease;
+}
+
+@keyframes cardInsert {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Стили для пустой колонки */
+.column-content-empty {
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5e6c84;
+  font-size: 14px;
+  border: 2px dashed #dfe1e6;
+  border-radius: 8px;
+  margin: 4px 0;
+  padding: 20px;
+}
+
+/* Адаптив для мобильных */
+@media (max-width: 768px) {
+  .drag-clone {
+    transform: scale(0.95) !important;
+    width: 90% !important;
+  }
+
+  .drag-placeholder {
+    margin: 4px 0;
+  }
+}

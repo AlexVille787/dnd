@@ -1,8 +1,10 @@
 import Column from "./Column.js";
+import DragAndDrop from "./DragAndDrop.js";
 
 export default class Board {
   constructor() {
     this.columns = [];
+    this.dnd = null;
     this.init();
   }
 
@@ -13,6 +15,9 @@ export default class Board {
       const column = new Column(colEl);
       this.columns.push(column);
     });
+
+    // Инициализация Drag and Drop
+    this.dnd = new DragAndDrop(this);
 
     // Обработчик клика вне композера
     document.addEventListener("click", (e) => {

@@ -75,4 +75,13 @@ export default class Card {
       textEl.textContent = newText;
     }
   }
+
+  insert() {
+    if (this.element) {
+      this.element.classList.add("card-inserted");
+      setTimeout(() => {
+        this.element.classList.remove("card-inserted");
+      }, 300);
+    }
+  }
 }

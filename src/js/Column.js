@@ -214,4 +214,29 @@ export default class Column {
       this.updateCount();
     }
   }
+
+  updateDOM() {
+    const content = this.content;
+
+    // Сохраняем композер
+    const composer = this.composer;
+    const addBtn = this.addBtn;
+
+    // Очищаем содержимое
+    content.innerHTML = "";
+
+    // Добавляем все карточки
+    this.cards.forEach((card) => {
+      content.appendChild(card.element);
+    });
+
+    // Восстанавливаем композер и кнопку
+    if (composer) {
+      content.appendChild(composer);
+    }
+
+    if (addBtn && addBtn.parentNode !== content.parentNode) {
+      content.parentNode.insertBefore(addBtn, content.nextSibling);
+    }
+  }
 }
