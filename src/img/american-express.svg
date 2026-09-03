@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 32" width="48" height="32">
+  <rect width="48" height="32" rx="4" fill="#006FCF"/>
+  <text x="24" y="14" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="white" text-anchor="middle">AMERICAN</text>
+  <text x="24" y="22" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="white" text-anchor="middle">EXPRESS</text>
+  <text x="24" y="29" font-family="Arial, sans-serif" font-size="4" fill="#FFD700" text-anchor="middle">● ACCEPTED ●</text>
+</svg>

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trello Board</title>
+  </head>
+  <body>
+    <div class="board-wrapper">
+      <!-- Шапка как в Trello -->
+      <header class="board-header">
+        <div class="header-left">
+          <button class="header-btn">☰</button>
+          <h1 class="board-title">📋 Рабочая доска</h1>
+          <button class="header-btn">⭐</button>
+        </div>
+        <div class="header-right">
+          <button class="header-btn">👤</button>
+          <button class="header-btn">🔔</button>
+          <button class="header-btn">⚙️</button>
+        </div>
+      </header>
+
+      <div class="board">
+        <!-- Колонка TODO -->
+        <div class="column" data-column="todo">
+          <div class="column-header">
+            <h2 class="column-title">📌 В работе</h2>
+            <span class="column-count">6</span>
+            <button class="column-menu">⋮</button>
+          </div>
+          <div class="column-content">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-label blue">Welcome</span>
+                <span class="card-badge">1</span>
+              </div>
+              <p class="card-text">Welcome to Trello!</p>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-label green">Info</span>
+                <span class="card-badge">1</span>
+              </div>
+              <p class="card-text">This is a card.</p>
+            </div>
+            <div class="card">
+              <p class="card-text">Click on a card to see what's behind it.</p>
+              <span class="card-badge">1</span>
+            </div>
+            <div class="card">
+              <div class="card-attachment">
+                <span>📎</span>
+                <span>Attachments</span>
+              </div>
+              <p class="card-text">You can attach pictures and files...</p>
+              <span class="card-badge">2</span>
+            </div>
+            <div class="card">
+              <div class="card-attachment">
+                <span>🔗</span>
+                <span>Links</span>
+              </div>
+              <p class="card-text">... any kind of hyperlink ...</p>
+              <span class="card-badge">1</span>
+            </div>
+            <div class="card">
+              <div class="card-checklist">
+                <span>☑️</span>
+                <span>Checklist</span>
+                <span class="checklist-progress">1/3</span>
+              </div>
+              <p class="card-text">... or checklists.</p>
+              <span class="card-badge">1/3</span>
+            </div>
+          </div>
+          <button class="add-card-btn">+ Добавить карточку</button>
+          <div class="card-composer" style="display: none">
+            <textarea
+              class="card-composer-input"
+              placeholder="Enter a title for this card..."
+              rows="3"
+            ></textarea>
+            <div class="card-composer-actions">
+              <button class="btn-add-card">Добавить карточку</button>
+              <button class="btn-close-composer">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Колонка IN PROGRESS -->
+        <div class="column" data-column="inprogress">
+          <div class="column-header">
+            <h2 class="column-title">⚡ В процессе</h2>
+            <span class="column-count">6</span>
+            <button class="column-menu">⋮</button>
+          </div>
+          <div class="column-content">
+            <div class="card">
+              <div class="card-members">
+                <span class="avatar">👤</span>
+                <span class="avatar">👤</span>
+                <span class="avatar">👤</span>
+              </div>
+              <p class="card-text">
+                Invite your team to this board using the Add Members button
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-members">
+                <span class="avatar">👤</span>
+              </div>
+              <p class="card-text">
+                Drag people onto a card to indicate that they're responsible for
+                it.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-labels">
+                <span class="label-dot red"></span>
+                <span class="label-dot green"></span>
+                <span class="label-dot blue"></span>
+              </div>
+              <p class="card-text">Use color-coded labels for organization</p>
+            </div>
+            <div class="card">
+              <p class="card-text">Make as many lists as you need!</p>
+            </div>
+            <div class="card">
+              <p class="card-text">Try dragging cards anywhere.</p>
+            </div>
+            <div class="card">
+              <p class="card-text">Finished with a card? Archive it.</p>
+            </div>
+          </div>
+          <button class="add-card-btn">+ Добавить карточку</button>
+          <div class="card-composer" style="display: none">
+            <textarea
+              class="card-composer-input"
+              placeholder="Enter a title for this card..."
+              rows="3"
+            ></textarea>
+            <div class="card-composer-actions">
+              <button class="btn-add-card">Добавить карточку</button>
+              <button class="btn-close-composer">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Колонка DONE -->
+        <div class="column" data-column="done">
+          <div class="column-header">
+            <h2 class="column-title">✅ Готово</h2>
+            <span class="column-count">7</span>
+            <button class="column-menu">⋮</button>
+          </div>
+          <div class="column-content">
+            <div class="card completed">
+              <p class="card-text">
+                To learn more tricks, check out the guide.
+              </p>
+            </div>
+            <div class="card completed">
+              <p class="card-text">Use as many boards as you want.</p>
+            </div>
+            <div class="card completed">
+              <p class="card-text">We'll make more!</p>
+            </div>
+            <div class="card completed">
+              <p class="card-text">
+                Want to use keyboard shortcuts? We have them!
+              </p>
+            </div>
+            <div class="card completed">
+              <p class="card-text">Want updates on new features?</p>
+            </div>
+            <div class="card completed">
+              <p class="card-text">Need help?</p>
+            </div>
+            <div class="card completed">
+              <p class="card-text">
+                Want current tips, usage examples, or API info?
+              </p>
+            </div>
+          </div>
+          <button class="add-card-btn">+ Добавить карточку</button>
+          <div class="card-composer" style="display: none">
+            <textarea
+              class="card-composer-input"
+              placeholder="Enter a title for this card..."
+              rows="3"
+            ></textarea>
+            <div class="card-composer-actions">
+              <button class="btn-add-card">Добавить карточку</button>
+              <button class="btn-close-composer">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
