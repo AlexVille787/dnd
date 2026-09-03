@@ -12,6 +12,8 @@ export default class DragAndDrop {
     this.offsetX = 0;
     this.offsetY = 0;
     this.cardHeight = 0;
+    this.currentTargetColumn = null;
+    this.currentTargetIndex = null;
 
     this.init();
   }
@@ -103,6 +105,8 @@ export default class DragAndDrop {
     this.startColumn = columnObj;
     this.startIndex = cardIndex;
     this.isDragging = true;
+    this.currentTargetColumn = null;
+    this.currentTargetIndex = null;
 
     // Сохраняем высоту карточки
     const rect = card.getBoundingClientRect();
@@ -110,18 +114,19 @@ export default class DragAndDrop {
     this.offsetX = e.clientX - rect.left;
     this.offsetY = e.clientY - rect.top;
 
+    // Добавляем класс перетаскивания
+    card.classList.add("dragging");
+
     // Создаем клон для перетаскивания
     this.createDragClone(card, e);
 
-    // Создаем призрачную область на месте карточки (всегда размером с карточку)
+    // Создаем призрачную область на месте карточки
     this.createGhost(card);
 
     // Создаем плейсхолдер для вставки
     this.createPlaceholder(card);
 
-    // Делаем оригинальную карточку полупрозрачной и скрываем
-    card.style.opacity = "0.3";
-    card.style.transform = "scale(0.95)";
+    // Скрываем оригинальную карточку
     card.style.display = "none";
 
     // Меняем курсор
@@ -155,7 +160,6 @@ export default class DragAndDrop {
   }
 
   createGhost(card) {
-    // Удаляем старый призрак если есть
     if (this.ghostElement) {
       this.ghostElement.remove();
     }
@@ -172,13 +176,11 @@ export default class DragAndDrop {
     ghost.style.pointerEvents = "none";
     ghost.style.flexShrink = "0";
 
-    // Вставляем призрачную область на место карточки
     card.parentNode.insertBefore(ghost, card);
     this.ghostElement = ghost;
   }
 
   createPlaceholder(card) {
-    // Удаляем старый плейсхолдер если есть
     if (this.placeholder) {
       this.placeholder.remove();
     }
@@ -193,9 +195,10 @@ export default class DragAndDrop {
     placeholder.style.transition = "all 0.2s ease";
     placeholder.style.display = "none";
     placeholder.style.flexShrink = "0";
+    placeholder.style.pointerEvents = "none";
 
-    // Вставляем плейсхолдер на место карточки (после призрака)
-    if (this.ghostElement) {
+    // Вставляем плейсхолдер после призрака
+    if (this.ghostElement && this.ghostElement.parentNode) {
       this.ghostElement.parentNode.insertBefore(
         placeholder,
         this.ghostElement.nextSibling,
@@ -216,106 +219,164 @@ export default class DragAndDrop {
       this.dragClone.style.top = clientY - this.offsetY + "px";
     }
 
-    // Находим элемент под курсором
+    // Получаем элемент под курсором
     const elementBelow = document.elementFromPoint(clientX, clientY);
     if (!elementBelow) {
-      this.placeholder.style.display = "none";
+      this.hidePlaceholder();
       return;
     }
 
     // Проверяем, находится ли курсор над колонкой
     const columnBelow = elementBelow.closest(".column");
     if (!columnBelow) {
-      this.placeholder.style.display = "none";
+      this.hidePlaceholder();
       return;
     }
 
-    // Получаем все карточки в колонке (кроме перетаскиваемой)
-    const cards = columnBelow.querySelectorAll(".card:not(.dragging)");
-    const columnContent = columnBelow.querySelector(".column-content");
-
-    if (!columnContent) {
-      this.placeholder.style.display = "none";
+    // Получаем колонку
+    const columnObj = this.board.findColumn(columnBelow);
+    if (!columnObj) {
+      this.hidePlaceholder();
       return;
     }
 
-    // Проверяем, есть ли карточки в колонке
-    if (cards.length === 0) {
-      // Пустая колонка - показываем плейсхолдер в начале
-      this.placeholder.style.display = "block";
-      columnContent.insertBefore(this.placeholder, columnContent.firstChild);
+    // Получаем все видимые карточки в колонке (исключаем перетаскиваемую)
+    const allCards = columnBelow.querySelectorAll(".card:not(.dragging)");
+
+    // Если карточек нет, вставляем в начало
+    if (allCards.length === 0) {
+      this.showPlaceholderAtStart(columnBelow);
       return;
     }
 
     // Ищем карточку под курсором
     let targetCard = null;
-    let targetIndex = -1;
+    let targetPosition = null; // 'before' или 'after'
 
-    for (let i = 0; i < cards.length; i++) {
-      const card = cards[i];
+    for (const card of allCards) {
       const rect = card.getBoundingClientRect();
 
-      // Проверяем, находится ли курсор над этой карточкой
+      // Проверяем, находится ли курсор над карточкой
       if (
         clientX >= rect.left &&
         clientX <= rect.right &&
         clientY >= rect.top &&
         clientY <= rect.bottom
       ) {
+        // Определяем, вставлять до или после
+        const midY = rect.top + rect.height / 2;
         targetCard = card;
-        targetIndex = i;
+        targetPosition = clientY < midY ? "before" : "after";
         break;
       }
     }
 
     if (targetCard) {
-      // Карточка найдена - определяем позицию вставки
-      const rect = targetCard.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
+      // Нашли карточку под курсором
+      this.showPlaceholderAtCard(targetCard, targetPosition);
+    } else {
+      // Курсор над колонкой, но не над конкретной карточкой
+      // Находим ближайшую карточку
+      let closestCard = null;
+      let closestDistance = Infinity;
 
-      // Показываем плейсхолдер
-      this.placeholder.style.display = "block";
+      for (const card of allCards) {
+        const rect = card.getBoundingClientRect();
+        const cardCenterX = rect.left + rect.width / 2;
+        const cardCenterY = rect.top + rect.height / 2;
 
-      if (clientY < midY) {
-        // Вставляем ДО карточки
-        if (this.placeholder.nextElementSibling !== targetCard) {
-          targetCard.parentNode.insertBefore(this.placeholder, targetCard);
+        const distance = Math.sqrt(
+          Math.pow(clientX - cardCenterX, 2) +
+            Math.pow(clientY - cardCenterY, 2),
+        );
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestCard = card;
         }
+      }
+
+      if (closestCard) {
+        const rect = closestCard.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const position = clientY < midY ? "before" : "after";
+        this.showPlaceholderAtCard(closestCard, position);
       } else {
-        // Вставляем ПОСЛЕ карточки
-        const nextSibling = targetCard.nextElementSibling;
-        if (
-          nextSibling &&
-          this.placeholder.nextElementSibling !== nextSibling
-        ) {
-          targetCard.parentNode.insertBefore(this.placeholder, nextSibling);
-        } else if (!nextSibling) {
-          targetCard.parentNode.appendChild(this.placeholder);
-        }
+        this.showPlaceholderAtStart(columnBelow);
+      }
+    }
+  }
+
+  showPlaceholderAtCard(card, position) {
+    if (!this.placeholder) return;
+
+    this.placeholder.style.display = "block";
+
+    if (position === "before") {
+      // Вставляем ДО карточки
+      if (this.placeholder.nextElementSibling !== card) {
+        card.parentNode.insertBefore(this.placeholder, card);
       }
     } else {
-      // Карточка под курсором не найдена, но курсор над колонкой
-      // Вставляем в конец колонки
-      const lastCard = columnContent.querySelector(".card:last-child");
-      if (lastCard && !lastCard.classList.contains("dragging")) {
-        this.placeholder.style.display = "block";
-        if (this.placeholder.nextElementSibling !== null) {
-          columnContent.appendChild(this.placeholder);
-        }
-      } else {
-        // Если нет карточек или только перетаскиваемая
-        this.placeholder.style.display = "block";
-        columnContent.insertBefore(this.placeholder, columnContent.firstChild);
+      // Вставляем ПОСЛЕ карточки
+      const nextSibling = card.nextElementSibling;
+      if (nextSibling && this.placeholder.nextElementSibling !== nextSibling) {
+        card.parentNode.insertBefore(this.placeholder, nextSibling);
+      } else if (!nextSibling) {
+        card.parentNode.appendChild(this.placeholder);
       }
+    }
+  }
+
+  showPlaceholderAtStart(column) {
+    if (!this.placeholder) return;
+
+    const content = column.querySelector(".column-content");
+    if (!content) return;
+
+    this.placeholder.style.display = "block";
+
+    // Вставляем в начало колонки
+    const firstCard = content.querySelector(".card:not(.dragging)");
+    if (firstCard) {
+      content.insertBefore(this.placeholder, firstCard);
+    } else {
+      content.insertBefore(this.placeholder, content.firstChild);
+    }
+  }
+
+  hidePlaceholder() {
+    if (this.placeholder) {
+      this.placeholder.style.display = "none";
     }
   }
 
   endDrag() {
     if (!this.isDragging) return;
 
-    // Получаем целевую позицию
-    const targetColumn = this.getTargetColumn();
-    const targetIndex = this.getTargetIndex();
+    // Определяем целевую позицию
+    let targetColumn = null;
+    let targetIndex = null;
+
+    if (this.placeholder && this.placeholder.style.display !== "none") {
+      const columnElement = this.placeholder.closest(".column");
+      if (columnElement) {
+        targetColumn = this.board.findColumn(columnElement);
+
+        if (targetColumn) {
+          // Находим индекс вставки
+          const cards = targetColumn.cards;
+          const nextCard = this.placeholder.nextElementSibling;
+
+          if (nextCard && nextCard.classList.contains("card")) {
+            const cardIndex = cards.findIndex((c) => c.element === nextCard);
+            targetIndex = cardIndex !== -1 ? cardIndex : cards.length;
+          } else {
+            targetIndex = cards.length;
+          }
+        }
+      }
+    }
 
     // Удаляем клон
     if (this.dragClone) {
@@ -343,59 +404,64 @@ export default class DragAndDrop {
       this.draggedElement.classList.remove("dragging");
     }
 
-    // Если есть целевая колонка и она отличается от начальной или позиция изменилась
-    if (targetColumn && this.draggedCard) {
+    // Если есть целевая колонка и карточка
+    if (targetColumn && this.draggedCard && this.startColumn) {
       // Удаляем карточку из исходной колонки
       const fromColumn = this.startColumn;
       const fromIndex = this.startIndex;
 
-      // Удаляем из массива исходной колонки
-      const [card] = fromColumn.cards.splice(fromIndex, 1);
+      // Проверяем, что карточка все еще в массиве
+      if (fromColumn.cards[fromIndex] === this.draggedCard) {
+        // Удаляем из массива исходной колонки
+        const [card] = fromColumn.cards.splice(fromIndex, 1);
 
-      // Добавляем в целевую колонку
-      if (targetColumn === fromColumn) {
-        // Перемещение внутри той же колонки
-        const insertIndex =
-          targetIndex !== null && targetIndex !== undefined
-            ? targetIndex > fromIndex
-              ? targetIndex - 1
-              : targetIndex
-            : fromColumn.cards.length;
+        // Добавляем в целевую колонку
+        if (targetColumn === fromColumn) {
+          // Перемещение внутри той же колонки
+          const insertIndex =
+            targetIndex !== null && targetIndex !== undefined
+              ? targetIndex > fromIndex
+                ? targetIndex - 1
+                : targetIndex
+              : fromColumn.cards.length;
 
-        if (insertIndex >= fromColumn.cards.length) {
-          fromColumn.cards.push(card);
+          if (insertIndex >= fromColumn.cards.length) {
+            fromColumn.cards.push(card);
+          } else {
+            fromColumn.cards.splice(Math.max(0, insertIndex), 0, card);
+          }
         } else {
-          fromColumn.cards.splice(insertIndex, 0, card);
+          // Перемещение в другую колонку
+          if (
+            targetIndex !== null &&
+            targetIndex !== undefined &&
+            targetIndex < targetColumn.cards.length
+          ) {
+            targetColumn.cards.splice(targetIndex, 0, card);
+          } else {
+            targetColumn.cards.push(card);
+          }
         }
-      } else {
-        // Перемещение в другую колонку
-        if (
-          targetIndex !== null &&
-          targetIndex !== undefined &&
-          targetIndex < targetColumn.cards.length
-        ) {
-          targetColumn.cards.splice(targetIndex, 0, card);
+
+        // Обновляем DOM
+        this.updateColumnDOM(fromColumn);
+        if (targetColumn !== fromColumn) {
+          this.updateColumnDOM(targetColumn);
+          fromColumn.updateCount();
+          targetColumn.updateCount();
         } else {
-          targetColumn.cards.push(card);
+          fromColumn.updateCount();
         }
-      }
 
-      // Обновляем DOM обоих колонок
-      this.updateColumnDOM(fromColumn);
-      if (targetColumn !== fromColumn) {
-        this.updateColumnDOM(targetColumn);
-        fromColumn.updateCount();
-        targetColumn.updateCount();
-      } else {
-        fromColumn.updateCount();
-      }
-
-      // Анимация вставки
-      if (card.element) {
-        card.element.classList.add("card-inserted");
-        setTimeout(() => {
-          card.element.classList.remove("card-inserted");
-        }, 300);
+        // Анимация вставки
+        if (this.draggedElement) {
+          this.draggedElement.classList.add("card-inserted");
+          setTimeout(() => {
+            if (this.draggedElement) {
+              this.draggedElement.classList.remove("card-inserted");
+            }
+          }, 300);
+        }
       }
     }
 
@@ -406,45 +472,16 @@ export default class DragAndDrop {
     this.startColumn = null;
     this.startIndex = null;
     this.cardHeight = 0;
+    this.currentTargetColumn = null;
+    this.currentTargetIndex = null;
 
     // Восстанавливаем курсор
     document.body.style.cursor = "";
     document.body.classList.remove("dragging-active");
   }
 
-  getTargetColumn() {
-    if (!this.placeholder || !this.placeholder.parentNode) return null;
-    const columnElement = this.placeholder.closest(".column");
-    if (!columnElement) return null;
-    return this.board.findColumn(columnElement);
-  }
-
-  getTargetIndex() {
-    if (!this.placeholder || !this.placeholder.parentNode) return null;
-
-    const columnElement = this.placeholder.closest(".column");
-    if (!columnElement) return null;
-
-    const columnObj = this.board.findColumn(columnElement);
-    if (!columnObj) return null;
-
-    // Находим индекс, куда должен вставиться элемент
-    const cards = columnObj.cards;
-
-    // Смотрим, есть ли карточка после плейсхолдера
-    const nextCard = this.placeholder.nextElementSibling;
-    if (nextCard && nextCard.classList.contains("card")) {
-      const cardIndex = cards.findIndex((c) => c.element === nextCard);
-      return cardIndex !== -1 ? cardIndex : cards.length;
-    }
-
-    // Если плейсхолдер после последней карточки
-    return cards.length;
-  }
-
   updateColumnDOM(column) {
     const content = column.content;
-    // Сохраняем композер и кнопку
     const composer = column.composer;
     const addBtn = column.addBtn;
 
@@ -457,13 +494,11 @@ export default class DragAndDrop {
     });
 
     // Восстанавливаем композер и кнопку
-    if (composer && composer.parentNode === content) {
-      // Уже внутри
-    } else if (composer) {
+    if (composer && composer.parentNode !== content) {
       content.appendChild(composer);
     }
 
-    if (addBtn && addBtn.parentNode !== content) {
+    if (addBtn && addBtn.parentNode !== content.parentNode) {
       content.parentNode.insertBefore(addBtn, content.nextSibling);
     }
   }
